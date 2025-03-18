@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { type ProxyServer } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
-import { apiRequest } from "@/lib/queryClient";
+import { updateProxyServer } from "@/lib/firestore";
 
 interface ProxyCardProps {
   proxy: ProxyServer;
@@ -19,17 +19,10 @@ export function ProxyCard({ proxy, onStatusChange }: ProxyCardProps) {
   const handleToggle = async () => {
     setIsPending(true);
     try {
-      await apiRequest(
-        "POST",
-        `/api/proxy/${proxy.id}/toggle`,
-        { active: !proxy.isActive }
-      );
+      await updateProxyServer(proxy.id, { isActive: !proxy.isActive });
       onStatusChange();
-      toast({
-        title: proxy.isActive ? "Proxy Deactivated" : "Proxy Activated",
-        description: `${proxy.name} has been ${proxy.isActive ? "deactivated" : "activated"} successfully.`
-      });
     } catch (error) {
+      console.error("Error toggling proxy status:", error);
       toast({
         title: "Error",
         description: "Failed to toggle proxy status",

@@ -10,8 +10,16 @@ interface LatencyData {
 export function LatencyMonitor() {
   const { data, isLoading } = useQuery<LatencyData>({
     queryKey: ["/api/analytics/latency"],
-    refetchInterval: 5000,
+    refetchInterval: 2000,
+    retry: 3,
+    staleTime: 1000,
   });
+
+  const getLatencyColor = (latency: number) => {
+    if (latency < 100) return 'text-green-500';
+    if (latency < 300) return 'text-yellow-500';
+    return 'text-red-500';
+  };
 
   if (isLoading) {
     return (

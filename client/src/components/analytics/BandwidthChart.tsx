@@ -10,7 +10,42 @@ interface BandwidthData {
 export function BandwidthChart() {
   const { data, isLoading } = useQuery<BandwidthData[]>({
     queryKey: ["/api/analytics/bandwidth"],
+    refetchInterval: 5000,
+    select: (data) => data?.map(item => ({
+      ...item,
+      bandwidth: Number((item.bandwidth / 1024 / 1024).toFixed(2)) // Convert to MB
+    }))
   });
+
+  const chartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    scales: {
+      y: {
+        beginAtZero: true,
+        title: {
+          display: true,
+          text: 'Bandwidth (MB)'
+        }
+      },
+      x: {
+        title: {
+          display: true,
+          text: 'Time'
+        }
+      }
+    },
+    plugins: {
+      tooltip: {
+        mode: 'index',
+        intersect: false,
+      },
+      legend: {
+        display: true,
+        position: 'top' as const,
+      }
+    }
+  };
 
   if (isLoading) {
     return (

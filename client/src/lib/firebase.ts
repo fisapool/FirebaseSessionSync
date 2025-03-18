@@ -138,7 +138,7 @@ export async function signUpWithEmail(email: string, password: string) {
   }
 }
 
-export async function signInWithEmail(email: string, password: string) {ng) {
+export async function signInWithEmail(email: string, password: string) {
   try {
     const result = await signInWithEmailAndPassword(auth, email, password);
     console.log("User signed in successfully:", result.user.uid);

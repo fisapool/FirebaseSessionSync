@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { useLocation } from "wouter";
-import { auth, logout } from "@/lib/firebase";
+import { auth } from '@/lib/firebase';
+import { ThemeToggle } from '@/components/settings/ThemeToggle';
 import { ProxyList } from "@/components/proxy/ProxyList";
 import { BandwidthChart } from "@/components/analytics/BandwidthChart";
 import { LatencyMonitor } from "@/components/analytics/LatencyMonitor";

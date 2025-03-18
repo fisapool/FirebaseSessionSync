@@ -4,6 +4,7 @@ import { type ProxyServer } from "@shared/schema";
 import { subscribeToProxyServers } from "@/lib/firestore";
 import { auth } from "@/lib/firebase";
 import { useToast } from "@/hooks/use-toast";
+import { useDevMode } from "@/lib/hooks/useDevMode";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2 } from "lucide-react";
 

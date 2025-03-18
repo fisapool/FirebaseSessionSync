@@ -19,7 +19,7 @@ export function ProxyCard({ proxy, onStatusChange }: ProxyCardProps) {
   const handleToggle = async () => {
     setIsPending(true);
     try {
-      await updateProxyServer(proxy.id, { isActive: !proxy.isActive });
+      await updateProxyServer(proxy.id.toString(), { isActive: !proxy.isActive });
       onStatusChange();
     } catch (error) {
       console.error("Error toggling proxy status:", error);

@@ -14,7 +14,7 @@ export function subscribeToProxyServers(userId: string, callback: (proxies: Prox
     const proxies = snapshot.docs.map(doc => ({
       id: doc.id,
       ...doc.data()
-    } as ProxyServer));
+    })) as ProxyServer[];
     callback(proxies);
   }, (error) => {
     console.error("Error subscribing to proxy servers:", error);
@@ -63,7 +63,7 @@ export function subscribeToProxySessions(userId: string, callback: (sessions: Pr
     const sessions = snapshot.docs.map(doc => ({
       id: doc.id,
       ...doc.data()
-    } as ProxySession));
+    })) as ProxySession[];
     callback(sessions);
   }, (error) => {
     console.error("Error subscribing to proxy sessions:", error);

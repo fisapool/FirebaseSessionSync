@@ -6,7 +6,49 @@ import {
   signOut,
   onAuthStateChanged 
 } from "firebase/auth";
-import { getFirestore, collection, doc, setDoc, serverTimestamp } from "firebase/firestore";
+import { getFirestore, collection, doc, setDoc, serverTimestamp, getDocs, getDoc, limit, query } from "firebase/firestore";
+
+// Refresh auth token before critical operations
+export async function refreshAuthToken() {
+  try {
+    const user = auth.currentUser;
+    if (user) {
+      await user.getIdToken(true);  // Force token refresh
+      console.log("Auth token refreshed successfully");
+      return true;
+    }
+    return false;
+  } catch (error) {
+    console.error("Token refresh failed:", error);
+    return false;
+  }
+}
+
+// Test Firestore permissions
+export async function testFirestorePermissions() {
+  const user = auth.currentUser;
+  if (!user) {
+    console.error("No user is signed in");
+    return false;
+  }
+  
+  console.log("Testing Firestore permissions for user:", user.uid);
+  
+  try {
+    // Test user document access
+    const userDocTest = await getDoc(doc(db, 'users', user.uid));
+    console.log("User document access:", userDocTest.exists() ? "SUCCESS" : "Document doesn't exist but access allowed");
+    
+    // Test proxy servers collection access
+    const proxiesTest = await getDocs(query(collection(db, 'proxyServers'), limit(1)));
+    console.log("Proxy servers collection access:", !proxiesTest.empty ? "SUCCESS" : "Collection empty but access allowed");
+    
+    return true;
+  } catch (error) {
+    console.error("Permission test failed:", error);
+    return false;
+  }
+}
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -25,6 +67,7 @@ export const db = getFirestore(app);
 // Initialize collections for a new user
 async function initializeUserCollections(uid: string) {
   try {
+    await refreshAuthToken(); // Ensure fresh token before initialization
     const userRef = doc(collection(db, 'users'), uid);
     
     // Create or update user document

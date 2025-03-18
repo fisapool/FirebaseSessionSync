@@ -4,16 +4,29 @@ import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { signInWithGoogle } from "@/lib/firebase";
 import { FaGoogle } from "react-icons/fa";
+import { useToast } from "@/hooks/use-toast";
 
 export default function Auth() {
   const [, setLocation] = useLocation();
+  const { toast } = useToast();
 
   const handleLogin = async () => {
     try {
       await signInWithGoogle();
       setLocation("/dashboard");
-    } catch (error) {
+    } catch (error: any) {
       console.error("Login failed:", error);
+      let errorMessage = "Failed to sign in. Please try again.";
+
+      if (error.code === "auth/unauthorized-domain") {
+        errorMessage = "This domain is not authorized for sign-in. Please contact the administrator.";
+      }
+
+      toast({
+        title: "Authentication Error",
+        description: errorMessage,
+        variant: "destructive",
+      });
     }
   };
 

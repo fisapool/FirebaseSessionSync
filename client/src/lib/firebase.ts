@@ -60,10 +60,21 @@ async function initializeUserCollections(uid: string) {
 }
 
 // Listen for auth state changes
-onAuthStateChanged(auth, (user) => {
+onAuthStateChanged(auth, async (user) => {
   if (user) {
     console.log("User is signed in:", user.uid);
-    initializeUserCollections(user.uid);
+    try {
+      await initializeUserCollections(user.uid);
+      console.log("User collections initialized successfully");
+    } catch (error: any) {
+      if (error?.code === "permission-denied") {
+        console.error("Permission denied. Please check Firebase security rules.");
+        // Request new token to handle expired credentials
+        await auth.currentUser?.getIdToken(true);
+      } else {
+        console.error("Error during user initialization:", error);
+      }
+    }
   } else {
     console.log("User is signed out");
   }
@@ -75,13 +86,16 @@ export async function signUpWithEmail(email: string, password: string) {
     console.log("User signed up successfully:", result.user.uid);
     await initializeUserCollections(result.user.uid);
     return result.user;
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error signing up with email:", error);
-    throw error;
+    if (error.code === "auth/email-already-in-use") {
+      throw new Error("This email is already registered. Please sign in instead.");
+    }
+    throw new Error(error.message || "Failed to create account");
   }
 }
 
-export async function signInWithEmail(email: string, password: string) {
+export async function signInWithEmail(email: string, password: string) {ng) {
   try {
     const result = await signInWithEmailAndPassword(auth, email, password);
     console.log("User signed in successfully:", result.user.uid);

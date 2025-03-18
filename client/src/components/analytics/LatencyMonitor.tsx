@@ -54,3 +54,37 @@ export function LatencyMonitor() {
     </Card>
   );
 }
+import { useEffect, useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useProxyData } from '@/lib/hooks/useProxyData';
+import { auth } from '@/lib/firebase';
+
+export function LatencyMonitor() {
+  const { sessions } = useProxyData(auth.currentUser?.uid || '');
+  const [averageLatency, setAverageLatency] = useState<number>(0);
+
+  useEffect(() => {
+    if (!sessions.length) return;
+    
+    const latencies = sessions
+      .map(s => s.averageLatency)
+      .filter((l): l is number => l !== null && l !== undefined);
+    
+    if (latencies.length) {
+      setAverageLatency(
+        Math.round(latencies.reduce((a, b) => a + b, 0) / latencies.length)
+      );
+    }
+  }, [sessions]);
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Average Latency</CardTitle>
+      </CardHeader>
+      <CardContent className="text-4xl font-bold">
+        {averageLatency}ms
+      </CardContent>
+    </Card>
+  );
+}

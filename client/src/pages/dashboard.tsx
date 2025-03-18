@@ -52,6 +52,11 @@ export default function Dashboard() {
       </header>
 
       <main className="container mx-auto p-6 space-y-6">
+        <div className="flex justify-between items-center">
+          <h2 className="text-2xl font-semibold">Analytics Dashboard</h2>
+          <ThemeToggle />
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <BandwidthChart />
           <LatencyMonitor />

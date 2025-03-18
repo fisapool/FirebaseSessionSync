@@ -11,28 +11,30 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid == userId;
     }
 
-    // User documents
+    // User collection
     match /users/{userId} {
       allow read, write: if isOwner(userId);
       
-      // User settings subcollection
-      match /settings/{document=**} {
+      // Nested collections under user
+      match /{document=**} {
         allow read, write: if isOwner(userId);
       }
     }
 
-    // Proxy server rules
+    // Proxy server collection
     match /proxyServers/{serverId} {
       allow read: if isSignedIn();
-      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
-      allow update, delete: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn();
+      allow update, delete: if isSignedIn() && 
+        (resource == null || resource.data.userId == request.auth.uid);
     }
 
-    // Proxy session rules
+    // Proxy sessions collection
     match /proxySessions/{sessionId} {
       allow read: if isSignedIn();
-      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
-      allow update, delete: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn();
+      allow update, delete: if isSignedIn() && 
+        (resource == null || resource.data.userId == request.auth.uid);
     }
   }
 }

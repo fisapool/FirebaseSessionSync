@@ -6,7 +6,7 @@ import {
   signOut,
   onAuthStateChanged 
 } from "firebase/auth";
-import { getFirestore, collection, doc, setDoc } from "firebase/firestore";
+import { getFirestore, collection, doc, setDoc, serverTimestamp } from "firebase/firestore";
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -25,12 +25,28 @@ export const db = getFirestore(app);
 // Initialize collections for a new user
 async function initializeUserCollections(uid: string) {
   try {
-    // Create a default proxy server document
+    const userRef = doc(collection(db, 'users'), uid);
+    
+    // Create or update user document
+    await setDoc(userRef, {
+      uid,
+      createdAt: serverTimestamp(),
+      lastLogin: serverTimestamp()
+    }, { merge: true });
+
+    // Initialize settings subcollection
+    const settingsRef = doc(collection(db, `users/${uid}/settings`), 'preferences');
+    await setDoc(settingsRef, {
+      notifications: true,
+      theme: 'light'
+    }, { merge: true });
+
+    // Create default proxy server
     const proxyServerRef = doc(collection(db, 'proxyServers'), 'default');
     await setDoc(proxyServerRef, {
       userId: uid,
       name: "Default Server",
-      host: "localhost",
+      host: "0.0.0.0",
       port: 8080,
       location: "Local",
       isActive: false,
@@ -39,6 +55,7 @@ async function initializeUserCollections(uid: string) {
     console.log("Initialized collections for user:", uid);
   } catch (error) {
     console.error("Error initializing user collections:", error);
+    throw error;
   }
 }
 

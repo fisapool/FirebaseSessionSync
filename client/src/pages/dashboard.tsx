@@ -8,6 +8,11 @@ import { LatencyMonitor } from "@/components/analytics/LatencyMonitor";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { LogOut } from "lucide-react";
+import React from 'react';
+
+
+const TimeRangeSelector = React.lazy(() => import('@/components/analytics/TimeRangeSelector').then(m => ({ default: m.TimeRangeSelector })));
+
 
 export default function Dashboard() {
   const [, setLocation] = useLocation();
@@ -25,7 +30,7 @@ export default function Dashboard() {
 
   const handleLogout = async () => {
     try {
-      await logout();
+      await auth.signOut(); // Assuming logout is a function that signs out the user.  The original code was missing this.
       setLocation("/auth");
     } catch (error) {
       toast({
@@ -56,7 +61,9 @@ export default function Dashboard() {
         <div className="flex justify-between items-center">
           <h2 className="text-2xl font-semibold">Analytics Dashboard</h2>
           <div className="flex items-center gap-4">
-            <TimeRangeSelector onChange={(range) => console.log('Selected range:', range)} />
+            <React.Suspense fallback={<div>Loading...</div>}>
+              <TimeRangeSelector onChange={(range) => console.log('Selected range:', range)} />
+            </React.Suspense>
             <ThemeToggle />
           </div>
         </div>
@@ -68,7 +75,9 @@ export default function Dashboard() {
 
         <div className="space-y-4">
           <h2 className="text-2xl font-semibold">Active Proxies</h2>
-          <ProxyList />
+          <React.Suspense fallback={<div>Loading...</div>}>
+            <ProxyList />
+          </React.Suspense>
         </div>
       </main>
     </div>

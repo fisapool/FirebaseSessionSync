@@ -13,8 +13,17 @@ export function ProxyList() {
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
 
+  const { isDevMode, mockData } = useDevMode();
+
   useEffect(() => {
     const user = auth.currentUser;
+    
+    if (isDevMode) {
+      setProxies(mockData.proxyServers);
+      setIsLoading(false);
+      return;
+    }
+
     if (!user) {
       setError("Please sign in to view your proxies");
       setIsLoading(false);
@@ -33,7 +42,7 @@ export function ProxyList() {
       console.log("Cleaning up proxy subscription");
       unsubscribe();
     };
-  }, []);
+  }, [isDevMode, mockData]);
 
   if (isLoading) {
     return (

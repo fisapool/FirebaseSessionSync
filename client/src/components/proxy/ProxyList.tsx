@@ -4,30 +4,58 @@ import { type ProxyServer } from "@shared/schema";
 import { subscribeToProxyServers } from "@/lib/firestore";
 import { auth } from "@/lib/firebase";
 import { useToast } from "@/hooks/use-toast";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Loader2 } from "lucide-react";
 
 export function ProxyList() {
   const [proxies, setProxies] = useState<ProxyServer[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
-    if (!auth.currentUser) return;
+    const user = auth.currentUser;
+    if (!user) {
+      setError("Please sign in to view your proxies");
+      setIsLoading(false);
+      return;
+    }
 
-    const unsubscribe = subscribeToProxyServers(auth.currentUser.uid, (updatedProxies) => {
+    console.log("Setting up proxy subscription for user:", user.uid);
+    const unsubscribe = subscribeToProxyServers(user.uid, (updatedProxies) => {
+      console.log("Received proxy update:", updatedProxies);
       setProxies(updatedProxies);
       setIsLoading(false);
+      setError(null);
     });
 
-    return () => unsubscribe();
+    return () => {
+      console.log("Cleaning up proxy subscription");
+      unsubscribe();
+    };
   }, []);
 
   if (isLoading) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {[...Array(6)].map((_, i) => (
-          <div key={i} className="h-[200px] animate-pulse bg-muted rounded-lg" />
-        ))}
+      <div className="flex items-center justify-center h-48">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
       </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <Alert variant="destructive">
+        <AlertDescription>{error}</AlertDescription>
+      </Alert>
+    );
+  }
+
+  if (proxies.length === 0) {
+    return (
+      <Alert>
+        <AlertDescription>No proxies found. Add a proxy to get started.</AlertDescription>
+      </Alert>
     );
   }
 

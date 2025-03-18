@@ -8,21 +8,41 @@ const proxySessionsCollection = "proxySessions";
 
 // Proxy Server Operations
 export function subscribeToProxyServers(userId: string, callback: (proxies: ProxyServer[]) => void) {
-  const q = query(collection(db, proxyServersCollection), where("userId", "==", userId));
+  console.log("Subscribing to proxy servers for user:", userId);
 
-  return onSnapshot(q, (snapshot) => {
-    const proxies = snapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    })) as ProxyServer[];
-    callback(proxies);
-  }, (error) => {
-    console.error("Error subscribing to proxy servers:", error);
-  });
+  try {
+    const q = query(collection(db, proxyServersCollection), where("userId", "==", userId));
+
+    return onSnapshot(q, (snapshot) => {
+      console.log("Received proxy servers snapshot");
+      const proxies = snapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          userId: data.userId,
+          name: data.name,
+          host: data.host,
+          port: data.port,
+          location: data.location,
+          isActive: data.isActive
+        };
+      });
+      callback(proxies);
+    }, (error) => {
+      console.error("Error subscribing to proxy servers:", error);
+      // Optionally reset the proxies list on error
+      callback([]);
+    });
+  } catch (error) {
+    console.error("Error setting up proxy servers subscription:", error);
+    callback([]);
+    return () => {}; // Return empty unsubscribe function
+  }
 }
 
 export async function addProxyServer(userId: string, proxy: Omit<ProxyServer, "id" | "userId">) {
   try {
+    console.log("Adding proxy server for user:", userId);
     const docRef = await addDoc(collection(db, proxyServersCollection), {
       ...proxy,
       userId,
@@ -37,6 +57,7 @@ export async function addProxyServer(userId: string, proxy: Omit<ProxyServer, "i
 
 export async function updateProxyServer(id: string, data: Partial<ProxyServer>) {
   try {
+    console.log("Updating proxy server:", id);
     const docRef = doc(db, proxyServersCollection, id);
     await updateDoc(docRef, data);
   } catch (error) {
@@ -47,6 +68,7 @@ export async function updateProxyServer(id: string, data: Partial<ProxyServer>) 
 
 export async function deleteProxyServer(id: string) {
   try {
+    console.log("Deleting proxy server:", id);
     const docRef = doc(db, proxyServersCollection, id);
     await deleteDoc(docRef);
   } catch (error) {
@@ -57,21 +79,40 @@ export async function deleteProxyServer(id: string) {
 
 // Proxy Session Operations
 export function subscribeToProxySessions(userId: string, callback: (sessions: ProxySession[]) => void) {
-  const q = query(collection(db, proxySessionsCollection), where("userId", "==", userId));
+  console.log("Subscribing to proxy sessions for user:", userId);
 
-  return onSnapshot(q, (snapshot) => {
-    const sessions = snapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    })) as ProxySession[];
-    callback(sessions);
-  }, (error) => {
-    console.error("Error subscribing to proxy sessions:", error);
-  });
+  try {
+    const q = query(collection(db, proxySessionsCollection), where("userId", "==", userId));
+
+    return onSnapshot(q, (snapshot) => {
+      console.log("Received proxy sessions snapshot");
+      const sessions = snapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          userId: data.userId,
+          proxyId: data.proxyId,
+          startTime: data.startTime.toDate(),
+          endTime: data.endTime ? data.endTime.toDate() : null,
+          bandwidthUsed: data.bandwidthUsed,
+          averageLatency: data.averageLatency
+        };
+      });
+      callback(sessions);
+    }, (error) => {
+      console.error("Error subscribing to proxy sessions:", error);
+      callback([]);
+    });
+  } catch (error) {
+    console.error("Error setting up proxy sessions subscription:", error);
+    callback([]);
+    return () => {}; // Return empty unsubscribe function
+  }
 }
 
 export async function addProxySession(userId: string, session: Omit<ProxySession, "id" | "userId">) {
   try {
+    console.log("Adding proxy session for user:", userId);
     const docRef = await addDoc(collection(db, proxySessionsCollection), {
       ...session,
       userId,
@@ -89,6 +130,7 @@ export async function addProxySession(userId: string, session: Omit<ProxySession
 
 export async function updateProxySession(id: string, data: Partial<ProxySession>) {
   try {
+    console.log("Updating proxy session:", id);
     const docRef = doc(db, proxySessionsCollection, id);
     await updateDoc(docRef, data);
   } catch (error) {

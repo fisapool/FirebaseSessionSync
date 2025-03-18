@@ -1,5 +1,7 @@
+
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { auth } from '@/lib/firebase';
 
 interface LatencyData {
   current: number;
@@ -9,7 +11,11 @@ interface LatencyData {
 
 export function LatencyMonitor() {
   const { data, isLoading } = useQuery<LatencyData>({
-    queryKey: ["/api/analytics/latency"],
+    queryKey: ['latency', auth.currentUser?.uid],
+    queryFn: async () => {
+      const response = await fetch('/api/analytics/latency');
+      return response.json();
+    },
     refetchInterval: 2000,
     retry: 3,
     staleTime: 1000,
@@ -42,7 +48,9 @@ export function LatencyMonitor() {
       <CardContent>
         <div className="space-y-2">
           <div className="flex justify-between">
-            <span>Current: {data?.current}ms</span>
+            <span className={getLatencyColor(data?.current || 0)}>
+              Current: {data?.current}ms
+            </span>
             <span>Average: {data?.average}ms</span>
           </div>
           <div className="h-2 bg-muted rounded-full overflow-hidden">
